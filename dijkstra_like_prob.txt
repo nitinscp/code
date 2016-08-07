@@ -1,0 +1,221 @@
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.util.InputMismatchException;
+import java.util.ArrayList;
+import java.util.Arrays;
+class TwoClosest {
+	static ArrayList<ArrayList<Integer>> arr=new ArrayList<ArrayList<Integer>>(),val=new ArrayList<ArrayList<Integer>>();
+	static int dis[],vis[],n,min,c=0,e,len[],arry[][],valu[][],admin,sp[],k,check[],que[],ql;
+	
+	static void insert(int a){
+		int i;
+		for(i=ql-1;i>=0;i--){
+			if(que[i]>a) que[i+1]=que[i];
+			else break;
+		}
+		que[i+1]=a;ql++;
+	}
+	static void delete(int a){
+		int i,ind;
+		ind=search(a,ql,que);ql--;
+		for(i=ind;i<ql;i++) que[i]=que[i+1];
+	}
+	
+	static int search(int a,int n,int arr[]){
+		int l,r,m;
+		l=0;r=n-1;
+		while(l<=r){
+			m=l+r>>1;
+			if(arr[m]==a) return m;
+			else if(arr[m]<a) l=m+1;
+			else r=m-1;
+		}
+		return -1;
+	}
+	
+	static void dj(int s){
+		int i,d,e;check[0]++;ql=0;
+		dis[s]=0;vis[s]=1;c=1;check[s]=check[0];
+		while(c<n){
+			for(i=0;i<len[s];i++){
+				e=arry[s][i];
+				d=valu[s][i];
+				if(check[0]!=check[e]){
+					vis[e]=0;dis[e]=Integer.MAX_VALUE;check[e]=check[0];insert(e);
+				}
+				if(vis[e]==0&&d>0&&dis[e]>d+dis[s]){
+					dis[e]=dis[s]+d;
+				}
+			}
+			min=Integer.MAX_VALUE;
+			for(i=0;i<ql;i++){
+				e=que[i];
+				if(dis[e]<min){
+					min=dis[e];s=e;
+				}
+			}
+			vis[s]=1;c++;delete(s);
+			if(search(s,k,sp)>=0){
+				if(admin>dis[s]) admin=dis[s]; return ;
+			}
+			if(dis[s]>=admin) return;
+		}
+	}
+	
+	public static void main(String[] args) throws Exception {
+		PrintWriter pr = new PrintWriter(System.out, true);
+		InputReader in = new InputReader(System.in);
+		QuickSort qs=new QuickSort();
+		int t1,t2,w,i,j,t;
+		n=in.readInt();e=in.readInt();k=in.readInt();
+		sp=new int[k];len=new int[n+1];check=new int[n+1];dis=new int[n+1];vis=new int[n+1];que=new int[n];
+		for(i=0;i<k;i++) sp[i]=in.readInt();Arrays.sort(sp);
+		for(i=0;i<=n;i++){
+			arr.add(new ArrayList<Integer>());val.add(new ArrayList<Integer>());
+		}
+		for(i=0;i<e;i++){
+			t1=in.readInt();t2=in.readInt();w=in.readInt();
+			arr.get(t1).add(t2);len[t1]++;val.get(t1).add(w);
+			arr.get(t2).add(t1);len[t2]++;val.get(t2).add(w);
+		}
+		arry=new int[n+1][];valu=new int[n+1][];
+		for(i=1;i<=n;i++){
+			if(len[i]>0){
+				arry[i]=new int[len[i]];valu[i]=new int[len[i]];
+				for(j=0;j<len[i];j++){
+					arry[i][j]=arr.get(i).get(j);valu[i][j]=val.get(i).get(j);
+				}
+				qs.sort(arry[i], valu[i]);
+			}
+		}
+		arr.clear();val.clear();
+		admin=Integer.MAX_VALUE;
+		for(i=0;i<k;i++) dj(sp[i]);
+		pr.println(admin);
+	}
+}
+class QuickSort {
+	private int array[],array2[];
+    private int length;
+    public void sort(int inputArr[],int b[]) {
+         
+        if (inputArr == null || inputArr.length == 0) {
+            return;
+        }
+        this.array = inputArr;
+        this.array2=b;
+        length = inputArr.length;
+        quickSort(0, length - 1);
+    }
+ 
+    private void quickSort(int lowerIndex, int higherIndex) {
+         
+        int i = lowerIndex;
+        int j = higherIndex;
+        int pivot = array[lowerIndex+(higherIndex-lowerIndex)/2];
+        while (i <= j) {
+           
+            while (array[i] < pivot) {
+                i++;
+            }
+            while (array[j] > pivot) {
+                j--;
+            }
+            if (i <= j) {
+                int temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+                temp = array2[i];
+                array2[i] = array2[j];
+                array2[j] = temp;
+                i++;
+                j--;
+            }
+        }
+        if (lowerIndex < j)
+            quickSort(lowerIndex, j);
+        if (i < higherIndex)
+            quickSort(i, higherIndex);
+    }
+}
+class InputReader {
+    private InputStream stream;
+    private byte[] buf = new byte[102400];
+    private int curChar;
+    private int numChars;
+   
+    public InputReader(InputStream stream) {
+            this.stream = stream;
+    }
+    public final int read() {
+            if (numChars == -1)
+                    throw new InputMismatchException();
+            if (curChar >= numChars) {
+                    curChar = 0;
+                    try {
+                            numChars = stream.read(buf);
+                    } catch (IOException e) {
+                            throw new InputMismatchException();
+                    }
+                    if (numChars <= 0)
+                            return -1;
+            }
+            return buf[curChar++];
+    }
+    public final int readInt() {
+            int c = read();
+            while (isSpaceChar(c))
+                    c = read();
+            int sgn = 1;
+            if (c == '-') {
+                    sgn = -1;
+                    c = read();
+            }
+            int res = 0;
+            do {
+                    if (c < '0' || c > '9')
+                            throw new InputMismatchException();
+                    res *= 10;
+                    res += c - '0';
+                    c = read();
+            } while (!isSpaceChar(c));
+            return res * sgn;
+    }
+    public final long readLong() {
+            int c = read();
+            while (isSpaceChar(c))
+                    c = read();
+            int sgn = 1;
+            if (c == '-') {
+                    sgn = -1;
+                    c = read();
+            }
+            long res = 0;
+            do {
+                    if (c < '0' || c > '9')
+                            throw new InputMismatchException();
+                    res *= 10;
+                    res += c - '0';
+                    c = read();
+            } while (!isSpaceChar(c));
+            return res * sgn;
+    }
+    public final String readString() {
+            int c = read();
+            while (isSpaceChar(c))
+                    c = read();
+            StringBuilder res = new StringBuilder();
+            do {
+                    res.appendCodePoint(c);
+                    c = read();
+            } while (!isSpaceChar(c));
+            return res.toString();
+    }
+    public final  static boolean isSpaceChar(int c) {
+            return c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == -1;
+    }
+    public final String next() {
+            return readString();
+    }
+} 
